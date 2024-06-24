@@ -1,5 +1,5 @@
-use std::env;
 use rrd;
+use std::env;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -15,10 +15,14 @@ fn main() {
     while let Some(arg) = args.get(i) {
         match arg.as_str() {
             "-b" | "--binary" => {
-                options.output_type = Some(rrd::types::OutputType::Binary);
+                if !options.output_type.is_none() {
+                    options.output_type = Some(rrd::types::OutputType::Binary);
+                } else {
+                    rrd::exit_with_usage();
+                }
             }
             "-c" | "--columns" => {
-                options.columns = Some(match args.get(i+1) {
+                options.columns = Some(match args.get(i + 1) {
                     Some(value) => match value.parse() {
                         Ok(value) => value,
                         Err(_) => {
@@ -36,7 +40,7 @@ fn main() {
                 options.color = true;
             }
             "-g" | "--group" => {
-                options.group = Some(match args.get(i+1) {
+                options.group = Some(match args.get(i + 1) {
                     Some(value) => match value.parse() {
                         Ok(value) => value,
                         Err(_) => {
@@ -55,10 +59,14 @@ fn main() {
                 rrd::exit_with_usage();
             }
             "-i" | "--include" => {
-                options.output_type = Some(rrd::types::OutputType::CStyle);
+                if !options.output_type.is_none() {
+                    options.output_type = Some(rrd::types::OutputType::CStyle);
+                } else {
+                    rrd::exit_with_usage();
+                }
             }
             "-l" | "--limit" => {
-                options.limit = Some(match args.get(i+1) {
+                options.limit = Some(match args.get(i + 1) {
                     Some(value) => match value.parse() {
                         Ok(value) => value,
                         Err(_) => {
@@ -74,17 +82,21 @@ fn main() {
                 i += 1;
             }
             "-o" | "--output" => {
-                options.output = Some(args.get(i+1).unwrap().to_string());
+                options.output = Some(args.get(i + 1).unwrap().to_string());
                 i += 1;
             }
-            "-p" | "--postscript" => {
-                options.output_type = Some(rrd::types::OutputType::PostScript);
+            "-ps" | "--postscript" => {
+                if !options.output_type.is_none() {
+                    options.output_type = Some(rrd::types::OutputType::PostScript);
+                } else {
+                    rrd::exit_with_usage();
+                }
             }
             "-r" | "--reverse" => {
                 options.reverse = true;
             }
             "-s" | "--skip" => {
-                options.skip = Some(match args.get(i+1) {
+                options.skip = Some(match args.get(i + 1) {
                     Some(value) => match value.parse() {
                         Ok(value) => value,
                         Err(_) => {
@@ -105,7 +117,7 @@ fn main() {
         }
         i += 1;
     }
-    
+
     if options.input.is_none() {
         rrd::exit_with_usage();
     }
