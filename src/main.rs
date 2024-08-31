@@ -15,11 +15,12 @@ fn main() {
     while let Some(arg) = args.get(i) {
         match arg.as_str() {
             "-b" | "--binary" => {
-                if !options.output_type.is_none() {
-                    options.output_type = Some(rrd::types::OutputType::Binary);
-                } else {
+                if options.output_type.is_none() {
                     rrd::exit_with_usage();
                 }
+                options.output_type = Some(rrd::types::OutputType::Binary);
+                options.group = Some(1);
+                options.columns = Some(6);
             }
             "-c" | "--columns" => {
                 options.columns = Some(match args.get(i + 1) {
