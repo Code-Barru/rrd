@@ -1,21 +1,14 @@
+use crate::args::{Args, OutputFormat};
 use std::fs;
-pub mod types;
 
-pub fn exit_with_usage() {
-    eprintln!("Usage: rrd [options] [input file]");
-    std::process::exit(1);
-}
-
-fn print_line(bytes: &[u8], options: &types::RrdOptions, addr_len: &usize) -> usize {
+fn print_line(bytes: &[u8], options: &Args, addr_len: &usize) -> usize {
     let mut addr_len = *addr_len;
     let line_lenght: usize;
     let mut current_line_lenght;
 
-    match options.output_type.unwrap() {
-        types::OutputType::Hexadecimal => {
-            line_lenght = 11
-                + (options.columns.unwrap() * 2)
-                + (options.columns.unwrap() / options.group.unwrap());
+    match options.format {
+        OutputFormat::Hexadecimal => {
+            line_lenght = 11 + (options.columns * 2) + (options.columns / options.group);
             current_line_lenght = 0;
             print!("{:08x}: ", addr_len);
             current_line_lenght += 10;
@@ -23,7 +16,7 @@ fn print_line(bytes: &[u8], options: &types::RrdOptions, addr_len: &usize) -> us
             let mut i = 1;
             for byte in bytes {
                 print!("{:02x}", byte);
-                if i % options.group.unwrap() == 0 {
+                if i % options.group == 0 {
                     print!(" ");
                     current_line_lenght += 1;
                     i = 1;
@@ -49,16 +42,14 @@ fn print_line(bytes: &[u8], options: &types::RrdOptions, addr_len: &usize) -> us
             }
             println!();
         }
-        types::OutputType::CStyle => {}
-        types::OutputType::PostScript => {
+        OutputFormat::CStyle => {}
+        OutputFormat::PostScript => {
             for byte in bytes {
                 print!("{:02x}", byte);
             }
         }
-        types::OutputType::Binary => {
-            line_lenght = 4
-                + (options.columns.unwrap() * 9)
-                + (options.columns.unwrap() / options.group.unwrap());
+        OutputFormat::Binary => {
+            line_lenght = 4 + (options.columns * 9) + (options.columns / options.group);
             current_line_lenght = 0;
 
             print!("{:08x}: ", addr_len);
@@ -67,7 +58,7 @@ fn print_line(bytes: &[u8], options: &types::RrdOptions, addr_len: &usize) -> us
             let mut i = 1;
             for byte in bytes {
                 print!("{:08b}", byte);
-                if i % options.group.unwrap() == 0 {
+                if i % options.group == 0 {
                     print!(" ");
                     current_line_lenght += 1;
                     i = 1;
@@ -98,8 +89,8 @@ fn print_line(bytes: &[u8], options: &types::RrdOptions, addr_len: &usize) -> us
     return addr_len;
 }
 
-pub fn run(options: types::RrdOptions) {
-    let contents = match fs::read(options.clone().input.unwrap()) {
+pub fn run(args: Args) {
+    let contents = match fs::read(&args.input) {
         Ok(contents) => contents,
         Err(_) => {
             eprintln!("Error reading file");
@@ -111,8 +102,8 @@ pub fn run(options: types::RrdOptions) {
 
     while i < contents.len() {
         // Only takes the next `columns` bytes or the remaining bytes if less than `columns` remain
-        let line = &contents[i..(std::cmp::min(i + options.columns.unwrap(), contents.len()))];
-        addr_len = print_line(line, &options, &addr_len);
-        i += options.columns.unwrap();
+        let line = &contents[i..(std::cmp::min(i + args.columns, contents.len()))];
+        addr_len = print_line(line, &args, &addr_len);
+        i += args.columns;
     }
 }
