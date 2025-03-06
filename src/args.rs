@@ -6,7 +6,12 @@ pub struct Args {
     #[arg(help = "The input file to read")]
     pub input: String,
 
-    #[arg(long, short, help = "The output file", default_value = "0")]
+    #[arg(
+        long,
+        short,
+        help = "The size of bytes read per lines",
+        default_value = "0"
+    )]
     pub addr_len: usize,
 
     #[arg(long, short, help = "The number of columns", default_value = "16")]
